@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import linecache
 from math import floor, ceil
+import random
 
 def convert_root_to_csv(data_root):
     dataset_flag = False
@@ -55,10 +56,25 @@ def convert_root_to_csv(data_root):
     else:
         print('dataset_csv already exists')                
 
-def splitTrainTest(data_root):
-    return
+def splitTrainTest(data_root, size=10627):
+    if (os.path.exists(os.path.join(data_root, 'data', 'dataset_csv_train'))) and (os.path.exists(os.path.join(data_root, 'data', 'dataset_csv_test'))):
+        print('dataset_csv_train and dataset_csv_test already exist')
+    else:
+        dataset_csv = open(data_root+'/data/dataset_csv', "r")
+        dataset_csv_train = open(data_root+'/data/dataset_csv_train', "a")
+        dataset_csv_test = open(data_root+'/data/dataset_csv_test', "a")
 
-def plotExample(data_root, start, amount):
+        for i in range(size):
+            line = linecache.getline(data_root+'/data/dataset_csv', i)
+            if i%8 == 0:
+                dataset_csv_test.write(line)
+            else:
+                dataset_csv_train.write(line)
+        dataset_csv_train.close()
+        dataset_csv_test.close()
+        dataset_csv.close()
+
+def plotExample(data_root, amount, size=10627):
     if amount%2 != 0:
         print('amount must be even')
         return
@@ -68,24 +84,29 @@ def plotExample(data_root, start, amount):
         rows = floor(amount/2) if amount%2 == 0 else ceil(amount/2)
         columns = floor(amount/rows)
         for i in range(amount):
-            line = linecache.getline(data_root+'/data/dataset_csv', start + i)
+            index = random.randint(0, size)
+            line = linecache.getline(data_root+'/data/dataset_csv', index)
             line = line.split(',')
             print('line dimension: '+ str(len(line)))
             target = line[0]
-            print('target: '+ 'electron' if target == '0' else 'proton')
+            print('target: electron' if target == '0' else 'target: proton')
             dep = line[1:]
-            dep = np.array(dep, dtype='float32').reshape(20,20)
-            print('Deposit:')
-            print(dep)
+            dep = np.array(dep, dtype='float64').reshape(20,20)
+            #print('Deposit:')
+            #print(dep)
             print('Shape of deposit: '+str(dep.shape))
-            print('data type:' + str(dep.dtype))
+            print('data type: ' + str(dep.dtype))
 
             fig.add_subplot(rows, columns, i+1)
+            plt.xlabel('r coordinate')
+            plt.ylabel('t coordinate')
             plt.imshow(dep, cmap='hot', interpolation='nearest')
             plt.title('electron' if target == '0' else 'proton')
         
+        plt.subplots_adjust(hspace=0.5)
         plt.show()
 
 if __name__ == "__main__":
     convert_root_to_csv(os.getcwd())
-    plotExample(os.getcwd(), start=8560, amount=6)
+    splitTrainTest(os.getcwd())
+    plotExample(os.getcwd(), amount=6)
