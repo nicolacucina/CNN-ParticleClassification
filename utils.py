@@ -6,15 +6,16 @@ import linecache
 from math import floor, ceil
 import random
 
-def convert_root_to_csv(data_root):
+def convert_root_to_csv(data_root, energy_flag=False):
     dataset_flag = False
-    energy_flag = False
     
     if not os.path.exists(os.path.join(data_root, 'data')):
         os.makedirs(os.path.join(data_root, 'data'))
         dataset_flag = True
         if not os.path.exists(os.path.join(data_root, 'data', 'dataset_csv')):
             dataset_csv = open(data_root+'/data/dataset_csv', "a")
+        if energy_flag:
+            dataset_csv = open(data_root+'/data/dataset_energy_csv', "a")
 
     if dataset_flag:
         print('Creating dataset_csv')
@@ -34,6 +35,10 @@ def convert_root_to_csv(data_root):
                         dep = e_file["showers"]["dep"].array(library="np")
                         for i in range(len(dep)):
                             temp = '0,' # 0 is the label for electron
+                            
+                            if energy_flag:
+                                temp = temp + str(energy[i]) + ','
+
                             for j in range(len(dep[i])):
                                 temp = temp + str(dep[i][j]) + ','
                             temp = temp[:-1]
@@ -48,6 +53,10 @@ def convert_root_to_csv(data_root):
                         dep = p_file["showers"]["dep"].array(library="np")
                         for i in range(len(dep)):
                             temp = '1,' # 1 is the label for proton
+                            
+                            if energy_flag:
+                                temp = temp + str(energy[i]) + ','
+
                             for j in range(len(dep[i])):
                                 temp = temp + str(dep[i][j]) + ','
                             temp = temp[:-1]
@@ -56,36 +65,50 @@ def convert_root_to_csv(data_root):
     else:
         print('dataset_csv already exists')                
 
-def splitTrainTest(data_root, size=10627):
-    if (os.path.exists(os.path.join(data_root, 'data', 'dataset_csv_train'))) and (os.path.exists(os.path.join(data_root, 'data', 'dataset_csv_test'))):
-        print('dataset_csv_train and dataset_csv_test already exist')
+def splitTrainTest(data_root, energy_flag=False, size=10627):
+    if energy_flag:
+        #dataset_name = 'dataset_energy_csv'
+        train_name = 'dataset_energy_csv_train'
+        test_name = 'dataset_energy_csv_test'
+    else: 
+        #dataset_name = 'dataset_csv'
+        train_name = 'dataset_csv_train'
+        test_name = 'dataset_csv_test'
+
+    if (os.path.exists(os.path.join(data_root, 'data', train_name))) and (os.path.exists(os.path.join(data_root, 'data', test_name))):
+        print(train_name + ' and '+ test_name +' already exist')
     else:
-        dataset_csv = open(data_root+'/data/dataset_csv', "r")
-        dataset_csv_train = open(data_root+'/data/dataset_csv_train', "a")
-        dataset_csv_test = open(data_root+'/data/dataset_csv_test', "a")
+        #dataset_csv = open(data_root+'/data/'+dataset_name, "r")
+        dataset_csv_train = open(data_root+'/data/'+train_name, "a")
+        dataset_csv_test = open(data_root+'/data/'+test_name, "a")
 
         for i in range(size):
-            line = linecache.getline(data_root+'/data/dataset_csv', i)
+            line = linecache.getline(data_root+'/data/'+dataset_name, i)
             if i%8 == 0:
                 dataset_csv_test.write(line)
             else:
                 dataset_csv_train.write(line)
         dataset_csv_train.close()
         dataset_csv_test.close()
-        dataset_csv.close()
+        #dataset_csv.close()
 
-def plotExample(data_root, amount, size=10627):
+def plotExample(data_root, amount, energy_flag=False, size=10627):
     if amount%2 != 0:
         print('amount must be even')
         return
     else:
-        dataset_csv = open(data_root+'/data/dataset_csv', "r")
+        if energy_flag:
+            dataset_name = 'dataset_energy_csv'
+        else: 
+            dataset_name = 'dataset_csv'
+        
+        dataset_csv = open(data_root+'/data/'+dataset_name, "r")
         fig = plt.figure(figsize=(8, 8))
         rows = floor(amount/2) if amount%2 == 0 else ceil(amount/2)
         columns = floor(amount/rows)
         for i in range(amount):
             index = random.randint(0, size)
-            line = linecache.getline(data_root+'/data/dataset_csv', index)
+            line = linecache.getline(data_root+'/data/'+dataset_name, index)
             line = line.split(',')
             print('line dimension: '+ str(len(line)))
             target = line[0]

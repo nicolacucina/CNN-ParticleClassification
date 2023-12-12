@@ -1,22 +1,26 @@
-# Specie
-I file il cui nome inizia per _e_ si riferiscono ad elettroni, mentre quelli il cui nome inizia per _p_ si riferiscono a protoni
+# Dataset description
+File names beginning with _e_ refer to electrons, while file names beginning with _p_ refer to protons.
 
-# Energia
-I file sono divisi per energia totale rilasciata nel calorimetro (N.B. non è necessariamente uguale all'energia iniziale della particella). La suddivisione è in bin logaritmici, cioè tra il bin di energia i-esimo e il bin (i+1)-esimo c'è un rapporto costante. L'unico bin diverso è il primo _0-100_ in cui ho messo tutti gli eventi che hanno depositato meno di 100 GeV.
+# Energies
+Files are divided by the total energy released by the calorimeter (N.B. this energy isn't necessarily the initial energy of the particle).
 
-# Contenuto File
-Ogni file contiene un _tree_ chiamato "showers" che a sua volta è composto da 3 _branch_:
-- id: numero progressivo che identifica l'evento a livello globale (cioè per tutte le energie di quella specie particellare)
-- E0: vera energia della particella iniziale
-- dep: array con la frazione di deposito energetico medio in un certo bin di `t` e `r` (coordinata longitudinale e trasversale dello sciame)
-Un tree è praticamente una tabella e ogni branch una colonna. Ogni riga del tree corrisponde ad un evento.
+The files are divided in logaritmic bins, therefore the ratio between the energy of the i-th bin and the (i+1)-th bin is fixed.
+The only execption is the first _0-100_ bin where all the events with less than 100 GeV can be found.
 
-# Caratteristiche dep
-Ogni array ha 400 elementi, ma rappresenta una matrice 20x20 srotolata. Con il metodo `reshape(20,20)` puoi riottenere la forma originale associata al binnaggio in `t` e `r`.
-I valori di deposito sono rapportati al deposito totale dell'evento in questione per cui dovrebbero sempre essere compresi tra 0 e 1
+# File contents
+Each file contains a _tree_ called `showers` that is divided in 3 _branch_:
+- id: progressive number identifing the event globally (for all the energy level of that particular particle),
+- E0: initial energy of the particle,
+- dep: array with a fraction of mean energy deposit in a particular bin of `t` and `r` , the longitudinal and transversal coordinates of the swarm.
+Each tree can be thought of as a table and each branch as a column, while each row corrisponds to an event.
 
-# Lettura dati
-Usando la libreria python `uproot` puoi facilmente importare il `tree` nel tuo progetto sottoforma di `numpy.array` o `pandas.DataFrame`:
+# Deposit characteristics
+Each array has 400 elements, representing an unraveled 20x20 matrix.
+
+The deposit values in each cell are normalized to the total deposit of the event and should therefore be always between 0 and 1.
+
+# Accessing data
+The python library `uproot` can be used to import each `tree` as a `numpy.array` or a `pandas.Dataframe`, as shown in the following snippet: 
 ```
 import uproot as up
 import numpy as np
@@ -24,7 +28,7 @@ import numpy as np
 e_file = up.open("path/enebins/e_100-126_eventTables.root")
 dep = ef["showers"]["dep"].array(library="np")
 
-# shower del primo evento di elettroni con energia depositata tra 100 e 126 GeV
+# 
 dep0 = dep[0].reshape(20,20) 
-
+...
 ```
