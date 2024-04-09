@@ -8,7 +8,7 @@ import sys
 from utils import splitTrainTest
 
 class Dataset(data.Dataset):
-    def __init__(self, data_root=os.getcwd(), type='train'):
+    def __init__(self, data_root=os.getcwd(), type='train', seed=42):
         super(Dataset, self).__init__()
 
         self.type = type
@@ -29,6 +29,9 @@ class Dataset(data.Dataset):
         else:
             print('Invalid input')
             sys.exit()
+        
+        random.seed(seed)
+        random.shuffle(self.data)
 
     def __getitem__(self, index):
         line = self.data[index]
@@ -40,29 +43,6 @@ class Dataset(data.Dataset):
 
     def __len__(self):
         return len(self.data)
-
-        """
-    def __init__(self, train, data_root=os.getcwd()):
-        super(Dataset, self).__init__() 
-        
-        self.train = train
-        if self.train:
-            self.dataset_path = os.path.join(data_root, 'data', 'dataset_csv_train')
-        else:
-            self.dataset_path = os.path.join(data_root, 'data', 'dataset_csv_test')
-
-    def __getitem__(self, index):
-        line = linecache.getline(self.dataset_path, index)
-        linecache.clearcache()
-        line = line.split(',')
-        label = torch.tensor(int(line[0]))
-        dep = np.array(line[1:], dtype='float64').reshape(20,20)
-        input_tensor =  torch.from_numpy(dep)
-        return label, input_tensor 
-
-    def __len__(self):
-        return len(open(self.dataset_path).readlines())
-    """
         
 if __name__=='__main__':
     splitTrainTest(os.getcwd())
@@ -78,7 +58,10 @@ if __name__=='__main__':
         sys.exit()
 
     dataset = Dataset(data_root=os.getcwd(), type=temp)
-
+    print('Dataset loaded')
+    for i in range(10):
+        print(dataset.data[i][0: 10] + ' ... ' + dataset.data[i][-10: -1])
+    
     if dataset.type == 'train':
         print('Training set dimension: ' + str(dataset.__len__()))
     elif dataset.type == 'val':
@@ -87,7 +70,7 @@ if __name__=='__main__':
         print('Test set dimension: ' + str(dataset.__len__()))
         
     ## Test the __getitem__ method and the datatype returned ##
-    print('/////Testing the __getitem__ method/////')
+    print('*****Testing the __getitem__ method*****')
     target, data = dataset.__getitem__(index=random.randint(0, dataset.__len__()))
     print('target: electron' if target == '0' else 'target: proton')
     print('data:' + str(data))
