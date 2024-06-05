@@ -8,27 +8,43 @@ import sys
 from utils import splitTrainTest
 
 class Dataset(data.Dataset):
-    def __init__(self, data_root=os.getcwd(), type='train', seed=42):
+    def __init__(self, data_root=os.getcwd(), scaled=False, type='train', seed=42):
         super(Dataset, self).__init__()
 
         self.type = type
         self.data = []
-
-        if self.type == 'train':
-            with open(os.path.join(data_root, 'data', 'dataset_csv_train')) as f:
-                for line in f:
-                    self.data.append(line)
-        elif self.type == 'val':
-            with open(os.path.join(data_root, 'data', 'dataset_csv_val')) as f:
-                for line in f:
-                    self.data.append(line)
-        elif self.type == 'test':
-            with open(os.path.join(data_root, 'data', 'dataset_csv_test')) as f:
-                for line in f:
-                    self.data.append(line)
+        if scaled:
+            if self.type == 'train':
+                with open(os.path.join(data_root, 'data', 'dataset_csv_scaled_train')) as f:
+                    for line in f:
+                        self.data.append(line)
+            elif self.type == 'val':
+                with open(os.path.join(data_root, 'data', 'dataset_csv_scaled_val')) as f:
+                    for line in f:
+                        self.data.append(line)
+            elif self.type == 'test':
+                with open(os.path.join(data_root, 'data', 'dataset_csv_scaled_test')) as f:
+                    for line in f:
+                        self.data.append(line)
+            else:
+                print('Invalid input')
+                sys.exit()
         else:
-            print('Invalid input')
-            sys.exit()
+            if self.type == 'train':
+                with open(os.path.join(data_root, 'data', 'dataset_csv_train')) as f:
+                    for line in f:
+                        self.data.append(line)
+            elif self.type == 'val':
+                with open(os.path.join(data_root, 'data', 'dataset_csv_val')) as f:
+                    for line in f:
+                        self.data.append(line)
+            elif self.type == 'test':
+                with open(os.path.join(data_root, 'data', 'dataset_csv_test')) as f:
+                    for line in f:
+                        self.data.append(line)
+            else:
+                print('Invalid input')
+                sys.exit()
         
         random.seed(seed)
         random.shuffle(self.data)

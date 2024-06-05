@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# controllare downscaling che non collassino su immagini 1x1, massimo sottocampionare 2 volte fino a 5x5
+# dopo maxpooling o sottocampionamento rimettere layer conv. con stride 1 e padding 1
 class Net(nn.Module):
     def __init__(self, type):
         super(Net, self).__init__()

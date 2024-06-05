@@ -8,9 +8,8 @@ from dataset import Dataset
 class Solver():
     def __init__(self, args):
         self.args = args
-
-        self.train_data = Dataset(data_root=args.data_root, type='train', seed=args.seed)
-        self.test_data  = Dataset(data_root=args.data_root, type='val', seed=args.seed)
+        self.train_data = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='train', seed=args.seed)
+        self.test_data  = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='val', seed=args.seed)
         
         #initialize data loader, loss function, optimizer, network
         self.train_loader = DataLoader(dataset=self.train_data,
@@ -26,9 +25,12 @@ class Solver():
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.net = Net(type=args.type).to(self.device)
         # self.loss_fn = torch.nn.MSELoss()
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-        # self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
-        self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
+        # self.loss_fn = torch.nn.CrossEntropyLoss()
+        # devo controllare se softmax lo fa ottimizzatore o no, usare bce with logits con softmax, le etichette non sono normalizzate
+        self.loss_fn = torch.nn.BCEWithLogitsLoss()
+
+        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5) # usare questo anzichè adam       
+        #self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
         
         self.checkpoint_path = args.ckpt_dir
         if not os.path.exists(self.checkpoint_path):
@@ -37,7 +39,7 @@ class Solver():
     def fit(self):
 
         args = self.args
-
+        # controlla parametri dei layer se cambiano tra epoche
         for epoch in range(args.max_epochs):
             self.net.train()
             for step, inputs in enumerate(self.train_loader):
