@@ -38,7 +38,7 @@ class Solver():
     def fit(self):
 
         # controlla parametri dei layer se cambiano tra epoche
-        for epoch in range(args.max_epochs):
+        for epoch in range(self.args.max_epochs):
             self.net.train()
             for step, inputs in enumerate(self.train_loader):
                 # print('Solver-inputs: '+ str(inputs[0]))
@@ -68,12 +68,12 @@ class Solver():
                 self.optim.zero_grad()
                 loss.backward()
                 self.optim.step()
-                if (epoch+1) % args.print_every == 0:
+                if (epoch+1) % self.args.print_every == 0:
                     train_acc = self.evaluate('train')
                     test_acc  = self.evaluate('test')
                     
                     print("Epoch [{}/{}] Loss: {:.3f} Train Acc: {:.3f}, Test Acc: {:.3f}".
-                        format(epoch+1, args.max_epochs, loss.item(), train_acc, test_acc))
+                        format(epoch+1, self.args.max_epochs, loss.item(), train_acc, test_acc))
                                
                     # Epoch [1/3] Loss: 148.178 Train Acc: 0.525, Test Acc: 0.524
                     # Epoch [1/3] Loss: 103.751 Train Acc: 0.525, Test Acc: 0.524
@@ -81,10 +81,9 @@ class Solver():
                     # Epoch [1/3] Loss: 131.251 Train Acc: 0.525, Test Acc: 0.524
                     # Epoch [1/3] Loss: 120.198 Train Acc: 0.525, Test Acc: 0.524
         
-                    self.save(args.ckpt_name, epoch+1)
+                    self.save(self.args.ckpt_name, epoch+1)
 
     def evaluate(self, data):
-        args = self.args
         if data == 'train':
             loader = self.train_loader
         elif data == 'test':
