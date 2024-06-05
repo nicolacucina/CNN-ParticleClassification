@@ -26,10 +26,9 @@ class Solver():
         self.net = Net(type=args.type).to(self.device)
         # self.loss_fn = torch.nn.MSELoss()
         # self.loss_fn = torch.nn.CrossEntropyLoss()
-        # devo controllare se softmax lo fa ottimizzatore o no, usare bce with logits con softmax, le etichette non sono normalizzate
-        self.loss_fn = torch.nn.BCEWithLogitsLoss()
+        self.loss_fn = torch.nn.BCEWithLogitsLoss() # combines a Sigmoid layer and the BCELoss in one single class
 
-        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5) # usare questo anzichè adam       
+        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5)     
         #self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
         
         self.checkpoint_path = args.ckpt_dir
@@ -38,7 +37,6 @@ class Solver():
         
     def fit(self):
 
-        args = self.args
         # controlla parametri dei layer se cambiano tra epoche
         for epoch in range(args.max_epochs):
             self.net.train()
@@ -57,12 +55,12 @@ class Solver():
 
                 images = images.float()
                 pred = self.net(images)
-                #print('Solver-pred: '+ str(pred)) # => tensor([[ 1.9777e-01, -1.7745e-01], ... , grad_fn=<AddmmBackward0>)
+                # print('Solver-pred: '+ str(pred)) # => tensor([[ 0.0341, -0.1604],, ... , grad_fn=<MaxBackward0>)
                 # print('Solver-pred-shape: '+str(pred.shape))
                 # print('Solver-pred-type: '+str(type(pred)))
 
                 pred_max, _ = torch.max(pred, dim=1) 
-                # print('Solver-pred-max: '+ str(pred_max)) # => tensor([-5.6520e-01, ... ,grad_fn=<MaxBackward0>)               
+                # print('Solver-pred-max: '+ str(pred_max)) # => tensor([ 0.0341, ... ,grad_fn=<MaxBackward0>)               
                 # print('Solver-pred-max-shape: '+str(pred_max.shape))
                 # print('Solver-pred-max-type: '+str(type(pred_max)))
                 loss = self.loss_fn(pred_max, labels)
@@ -122,6 +120,9 @@ class Solver():
         save_path = os.path.join(
             self.checkpoint_path, "{}_{}.pth".format(ckpt_name, global_step))
         torch.save(self.net.state_dict(), save_path)
+    
+    def export(self):
+        torch.save(self.net.state_dict(), args.model_dir)
 
     def test(self):
         test_data = Dataset(data_root=args.data_root, type='test', seed=args.seed)

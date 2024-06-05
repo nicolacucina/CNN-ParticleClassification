@@ -13,7 +13,7 @@ class Net(nn.Module):
         if self.type == 'convolutional':
             self.conv1 = nn.Sequential(
                 nn.Conv2d(in_channels=1, out_channels=64, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
-                #nn.BatchNorm2d(64),
+                nn.BatchNorm2d(64),
                 nn.ReLU()
             )
             # self.conv1_1 = nn.Sequential(
@@ -48,7 +48,7 @@ class Net(nn.Module):
             )
             self.max_pool = nn.MaxPool2d(2)
             self.fc1 = nn.Sequential(
-                nn.Linear(512, 512),
+                nn.Linear(51200, 512),
                 nn.BatchNorm1d(512),
                 nn.ReLU()
             )
@@ -79,16 +79,16 @@ class Net(nn.Module):
             # out = self.fc(out)
 
             out = self.conv1(x)
-            out = self.max_pool(out)
+            # out = self.max_pool(out)
 
             out = self.conv2(out)
             out = self.max_pool(out)
 
             out = self.conv4(out)
-            out = self.max_pool(out)
+            # out = self.max_pool(out)
 
             out = self.conv6(out)
-            out = self.max_pool(out)
+            # out = self.max_pool(out)
             out = out.view(out.size(0), -1)
             out = self.fc1(out)
             out = self.fc2(out)

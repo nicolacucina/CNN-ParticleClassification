@@ -13,10 +13,12 @@ def main():
     parser.add_argument('--print_every', type=int, default=1)
     parser.add_argument('--ckpt_dir', type=str, default=os.path.join(os.getcwd(), 'checkpoint'))
     parser.add_argument('--ckpt_name', type=str, default='checkpoint')
+    parser.add_argument('--model-dir', type=str, default=os.path.join(os.getcwd(), 'model', 'model.pth'))
     parser.add_argument('--seed', type=int, default=41)
     args = parser.parse_args()
     solver = Solver(args)
     solver.fit()
+    solver.export()
     acc = solver.test()
     print('Test accuracy: ' + str(acc))
     
