@@ -9,7 +9,7 @@ class Solver():
     def __init__(self, args):
         self.args = args
         self.train_data = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='train', seed=args.seed)
-        self.test_data  = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='val', seed=args.seed)
+        self.val_data  = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='val', seed=args.seed)
         
         #initialize data loader, loss function, optimizer, network
         self.train_loader = DataLoader(dataset=self.train_data,
@@ -17,7 +17,7 @@ class Solver():
                                        num_workers=1,
                                        shuffle=True, drop_last=True)
 
-        self.test_loader = DataLoader(dataset=self.test_data,
+        self.val_loader = DataLoader(dataset=self.val_data,
                                       batch_size=args.batch_size,
                                       num_workers=1,
                                       shuffle=False)
@@ -30,7 +30,7 @@ class Solver():
 
         self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5)     
         #self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
-        
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optim, gamma=0.1)
         self.checkpoint_path = args.ckpt_dir
         if not os.path.exists(self.checkpoint_path):
             os.makedirs(self.checkpoint_path)
@@ -70,10 +70,10 @@ class Solver():
                 self.optim.step()
                 if (epoch+1) % self.args.print_every == 0:
                     train_acc = self.evaluate('train')
-                    test_acc  = self.evaluate('test')
+                    val_acc  = self.evaluate('val')
                     
-                    print("Epoch [{}/{}] Loss: {:.3f} Train Acc: {:.3f}, Test Acc: {:.3f}".
-                        format(epoch+1, self.args.max_epochs, loss.item(), train_acc, test_acc))
+                    print("Epoch [{}/{}] Loss: {:.3f} Train Acc: {:.3f}, Val Acc: {:.3f}".
+                        format(epoch+1, self.args.max_epochs, loss.item(), train_acc, val_acc))
                                
                     # Epoch [1/3] Loss: 148.178 Train Acc: 0.525, Test Acc: 0.524
                     # Epoch [1/3] Loss: 103.751 Train Acc: 0.525, Test Acc: 0.524
@@ -82,12 +82,13 @@ class Solver():
                     # Epoch [1/3] Loss: 120.198 Train Acc: 0.525, Test Acc: 0.524
         
                     self.save(self.args.ckpt_name, epoch+1)
+            self.scheduler.step()
 
     def evaluate(self, data):
         if data == 'train':
             loader = self.train_loader
-        elif data == 'test':
-            loader = self.test_loader
+        elif data == 'val':
+            loader = self.val_loader
 
         self.net.eval()
         num_correct, num_total = 0, 0
@@ -121,12 +122,12 @@ class Solver():
         torch.save(self.net.state_dict(), save_path)
     
     def export(self):
-        torch.save(self.net.state_dict(), args.model_dir)
+        torch.save(self.net.state_dict(), self.args.model_dir)
 
     def test(self):
-        test_data = Dataset(data_root=args.data_root, type='test', seed=args.seed)
+        test_data = Dataset(data_root=self.args.data_root, scaled=self.args.data_scaled, type='test', seed=self.args.seed)
         test_loader = DataLoader(dataset=test_data,
-                                      batch_size=args.batch_size,
+                                      batch_size=self.args.batch_size,
                                       num_workers=1,
                                       shuffle=False)
         self.net.eval()

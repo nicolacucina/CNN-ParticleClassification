@@ -46,9 +46,14 @@ class Net(nn.Module):
                 nn.BatchNorm2d(512),
                 nn.ReLU()
             )
+            self.conv7 = nn.Sequential(
+                nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
+                nn.BatchNorm2d(1024),
+                nn.ReLU()
+            )            
             self.max_pool = nn.MaxPool2d(2)
             self.fc1 = nn.Sequential(
-                nn.Linear(51200, 512),
+                nn.Linear(102400, 512),
                 nn.BatchNorm1d(512),
                 nn.ReLU()
             )
@@ -88,6 +93,7 @@ class Net(nn.Module):
             # out = self.max_pool(out)
 
             out = self.conv6(out)
+            out = self.conv7(out)
             # out = self.max_pool(out)
             out = out.view(out.size(0), -1)
             out = self.fc1(out)
