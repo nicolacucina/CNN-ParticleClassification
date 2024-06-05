@@ -22,7 +22,7 @@ def main():
     solver.fit()
     solver.export()
     t2 = time.time()
-    print('Time elapsed: ' + str(t2 - t1) + ' seconds')
+    print('Training Time: ' + str(t2 - t1) + ' seconds')
     acc = solver.test()
     print('Test accuracy: ' + str(acc))
     

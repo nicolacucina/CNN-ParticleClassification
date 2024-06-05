@@ -54,6 +54,7 @@ class Solver():
                 # print('Solver-label-type: '+str(type(labels)))
 
                 images = images.float()
+                self.optim.zero_grad()
                 pred = self.net(images)
                 # print('Solver-pred: '+ str(pred)) # => tensor([[ 0.0341, -0.1604],, ... , grad_fn=<MaxBackward0>)
                 # print('Solver-pred-shape: '+str(pred.shape))
@@ -65,7 +66,7 @@ class Solver():
                 # print('Solver-pred-max-type: '+str(type(pred_max)))
                 loss = self.loss_fn(pred_max, labels)
 
-                self.optim.zero_grad()
+                #self.optim.zero_grad()
                 loss.backward()
                 self.optim.step()
                 if (epoch+1) % self.args.print_every == 0:
@@ -74,12 +75,6 @@ class Solver():
                     
                     print("Epoch [{}/{}] Loss: {:.3f} Train Acc: {:.3f}, Val Acc: {:.3f}".
                         format(epoch+1, self.args.max_epochs, loss.item(), train_acc, val_acc))
-                               
-                    # Epoch [1/3] Loss: 148.178 Train Acc: 0.525, Test Acc: 0.524
-                    # Epoch [1/3] Loss: 103.751 Train Acc: 0.525, Test Acc: 0.524
-                    # Epoch [1/3] Loss: 111.480 Train Acc: 0.524, Test Acc: 0.524
-                    # Epoch [1/3] Loss: 131.251 Train Acc: 0.525, Test Acc: 0.524
-                    # Epoch [1/3] Loss: 120.198 Train Acc: 0.525, Test Acc: 0.524
         
                     self.save(self.args.ckpt_name, epoch+1)
             self.scheduler.step()
