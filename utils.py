@@ -213,7 +213,7 @@ def findMaxMin(data_root, energy_flag=False, size=10626):
         dataset_min_max.close()
     print('Max value: '+str(max_value) + ', Min value: '+str(min_value))
 
-def scaleDataset(data_root, energy_flag=False, size=10626):
+def scaleDataset(data_root, scalefactor=1000000, energy_flag=False, size=10626):
     if energy_flag:
         dataset_name = 'dataset_energy_csv_scaled'
     else: 
@@ -231,7 +231,7 @@ def scaleDataset(data_root, energy_flag=False, size=10626):
                 target = line[0]
                 dep = line[1:]
                 dep = np.array(dep, dtype='float64')
-                dep_scaled = dep * 1000000
+                dep_scaled = dep * scalefactor
                 temp = target + ','
                 for i in range(len(dep_scaled)):
                     temp = temp + str(dep_scaled[i]) + ','
@@ -242,15 +242,21 @@ def scaleDataset(data_root, energy_flag=False, size=10626):
     else:
         print('Scaled dataset already exists')
 
-def plotExample(data_root, amount, energy_flag=False, size=10626):
+def plotExample(data_root, amount, scaled=False, energy_flag=False, size=10626):
     if amount%2 != 0:
         print('amount must be even')
         return
     else:
-        if energy_flag:
-            dataset_name = 'dataset_energy_csv'
-        else: 
-            dataset_name = 'dataset_csv'
+        if scaled:
+            if energy_flag:
+                dataset_name = 'dataset_energy_csv_scaled'
+            else: 
+                dataset_name = 'dataset_csv_scaled'
+        else:
+            if energy_flag:
+                dataset_name = 'dataset_energy_csv'
+            else: 
+                dataset_name = 'dataset_csv'
         
         dataset_csv = open(data_root+'/data/'+dataset_name, "r")
         fig = plt.figure(figsize=(8, 8))
@@ -283,7 +289,7 @@ def plotExample(data_root, amount, energy_flag=False, size=10626):
 
 if __name__ == "__main__":
     convert_root_to_csv(os.getcwd())
-    splitTrainTest(os.getcwd(), scaled=True)
     findMaxMin(os.getcwd())
+    splitTrainTest(os.getcwd(), scaled=True)
     scaleDataset(os.getcwd())
     plotExample(os.getcwd(), amount=6)
