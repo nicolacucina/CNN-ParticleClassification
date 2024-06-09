@@ -34,8 +34,19 @@ if __name__ == "__main__":
         t2 = time.time()
         print('Testing Time: ' + str(t2 - t1) + ' seconds')
     elif temp == 'single':
-        #TODO: implement single test
-        pass
+        type = sys.argv[2]
+        index = int(sys.argv[3])
+        data = SingleDataset(data_root=os.getcwd(), index=index, scaled=True, type=type)
+        loader = DataLoader(dataset=data, batch_size=1, num_workers=1, shuffle=False)
+        with torch.no_grad():
+            for inputs in loader:
+                images = inputs[1].to(device).float()
+                labels = inputs[0].to(device).float()
+
+                outputs = net(images)
+                values, preds = torch.max(outputs.detach(), dim=1)
+                print('Ground Truth: ' + str(labels.item()) + ', Prediction: ' + str(preds.item()))
+                print('Prediction matches ground truth: ' + str(labels.item() == preds.item()))
     else:
         print('Invalid input')
         sys.exit()
