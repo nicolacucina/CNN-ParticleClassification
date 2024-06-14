@@ -2,12 +2,16 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from net import Net
-from dataset import Dataset
+from net import Net, Net1
+from dataset import Dataset, SingleDataset
 
 class Solver():
     def __init__(self, args):
         self.args = args
+        # Set seeds for reproducibility
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
+
         self.train_data = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='train', seed=args.seed)
         self.val_data  = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='val', seed=args.seed)
         
@@ -23,50 +27,35 @@ class Solver():
                                       shuffle=False)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.net = Net(type=args.type).to(self.device)
-        # self.loss_fn = torch.nn.MSELoss()
-        # self.loss_fn = torch.nn.CrossEntropyLoss()
-        self.loss_fn = torch.nn.BCEWithLogitsLoss() # combines a Sigmoid layer and the BCELoss in one single class
+        if(args.net == 'Net'):
+            self.net = Net().to(self.device)
+        elif(args.net == 'Net1'):
+            self.net = Net1().to(self.device)
+        else:
+            print('Invalid input')
+            sys.exit()
 
-        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5)     
+        # This loss combines a Sigmoid layer and the BCELoss in one single class
+        self.loss_fn = torch.nn.BCEWithLogitsLoss() 
+
+        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=args.decay)     
         #self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
-        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optim, gamma=0.1)
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optim, gamma=args.gamma)
         self.checkpoint_path = args.ckpt_dir
         if not os.path.exists(self.checkpoint_path):
             os.makedirs(self.checkpoint_path)
         
     def fit(self):
-
-        # controlla parametri dei layer se cambiano tra epoche
         for epoch in range(self.args.max_epochs):
             self.net.train()
             for step, inputs in enumerate(self.train_loader):
-                # print('Solver-inputs: '+ str(inputs[0]))
-
                 images = inputs[1].to(self.device)
-                # print('Solver-images: '+ str(images))
-                # print('Solver-images-shape: '+str(images.shape)+', ' + str(images.shape[0]))
-                # print('Solver-images-type: '+str(type(images)))
-
                 labels = inputs[0].to(self.device).float()
-                # print('Solver-labels: '+ str(labels))
-                # print('Solver-label-shape: '+str(labels.shape))
-                # print('Solver-label-type: '+str(type(labels)))
-
                 images = images.float()
                 self.optim.zero_grad()
                 pred = self.net(images)
-                # print('Solver-pred: '+ str(pred)) # => tensor([[ 0.0341, -0.1604],, ... , grad_fn=<MaxBackward0>)
-                # print('Solver-pred-shape: '+str(pred.shape))
-                # print('Solver-pred-type: '+str(type(pred)))
-
                 pred_max, _ = torch.max(pred, dim=1) 
-                # print('Solver-pred-max: '+ str(pred_max)) # => tensor([ 0.0341, ... ,grad_fn=<MaxBackward0>)               
-                # print('Solver-pred-max-shape: '+str(pred_max.shape))
-                # print('Solver-pred-max-type: '+str(type(pred_max)))
                 loss = self.loss_fn(pred_max, labels)
-
-                #self.optim.zero_grad()
                 loss.backward()
                 self.optim.step()
                 if (epoch+1) % self.args.print_every == 0:

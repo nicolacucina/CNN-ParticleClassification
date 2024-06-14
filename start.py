@@ -7,8 +7,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_root', type=str, default=os.getcwd())
     parser.add_argument('--data-scaled', type=bool, default=True)
-    parser.add_argument('--type', type=str, default='convolutional')
-    parser.add_argument('--lr', type=float, default=0.1) # usare scheduler per cambiare lr
+    parser.add_argument('--net', type=str, default='Net')
+    parser.add_argument('--lr', type=float, default=0.1)
+    parser.add_argument('--gamma', type=float, default=0.55)
+    parser.add_argument('--decay', type=float, default=1e-3)
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--max_epochs', type=int, default=20)
     parser.add_argument('--print_every', type=int, default=3)

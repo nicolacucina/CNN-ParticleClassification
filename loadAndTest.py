@@ -2,19 +2,24 @@ import os
 import numpy as np
 import torch
 import time
+import sys
+import linecache
 from torch.utils.data import DataLoader
 from net import Net
-from dataset import Dataset
+from dataset import Dataset, SingleDataset
 
 if __name__ == "__main__":
+    model = sys.argv[1]
+    temp = sys.argv[2]
+    type = sys.argv[3]
     t1 = time.time()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    net = Net(type='convolutional').to(device)
+    net = Net().to(device)
     net.load_state_dict(torch.load(os.path.join(os.getcwd(), 'model', 'model.pth'), map_location=device))
     net.eval()
     temp = sys.argv[1]
     if temp == 'full':
-        test_data = Dataset(data_root=os.getcwd(), scaled=True, type='test', seed=42)
+        test_data = Dataset(data_root=os.getcwd(), scaled=True, type=type)
         test_loader = DataLoader(dataset=test_data, batch_size=1024, num_workers=1, shuffle=False)
         
         num_correct, num_total = 0, 0
@@ -34,8 +39,7 @@ if __name__ == "__main__":
         t2 = time.time()
         print('Testing Time: ' + str(t2 - t1) + ' seconds')
     elif temp == 'single':
-        type = sys.argv[2]
-        index = int(sys.argv[3])
+        index = int(sys.argv[4])
         data = SingleDataset(data_root=os.getcwd(), index=index, scaled=True, type=type)
         loader = DataLoader(dataset=data, batch_size=1, num_workers=1, shuffle=False)
         with torch.no_grad():
