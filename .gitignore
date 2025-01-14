@@ -1,3 +1,6 @@
 __pycache__
 checkpoint
+checkpoint/*
 examples
+model
+model/*

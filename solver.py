@@ -2,12 +2,16 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from net import Net
+from net import Net, Net1
 from dataset import Dataset
 
 class Solver():
     def __init__(self, args):
         self.args = args
+        # Set seeds for reproducibility
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
+        
         self.train_data = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='train', seed=args.seed)
         self.val_data  = Dataset(data_root=args.data_root, scaled=args.data_scaled, type='val', seed=args.seed)
         
@@ -15,7 +19,7 @@ class Solver():
         self.train_loader = DataLoader(dataset=self.train_data,
                                        batch_size=args.batch_size,
                                        num_workers=1,
-                                       shuffle=True, drop_last=True)
+                                       shuffle=False, drop_last=True)
 
         self.val_loader = DataLoader(dataset=self.val_data,
                                       batch_size=args.batch_size,
@@ -23,14 +27,16 @@ class Solver():
                                       shuffle=False)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.net = Net(type=args.type).to(self.device)
+        # self.net = Net(type=args.type).to(self.device)
+        self.net = Net1().to(self.device)
         # self.loss_fn = torch.nn.MSELoss()
         # self.loss_fn = torch.nn.CrossEntropyLoss()
         self.loss_fn = torch.nn.BCEWithLogitsLoss() # combines a Sigmoid layer and the BCELoss in one single class
 
-        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=1e-5)     
-        #self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
-        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optim, gamma=0.1)
+        self.optim = torch.optim.SGD(self.net.parameters(), lr=args.lr, weight_decay=args.decay)     
+        # self.optim = torch.optim.Adam(self.net.parameters(), lr=args.lr, weight_decay=1e-5)
+        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optim, gamma=args.gamma)
+        # self.scheduler = torch.optim.lr_scheduler.StepLR(self.optim, step_size= 0.01, gamma=args.gamma)
         self.checkpoint_path = args.ckpt_dir
         if not os.path.exists(self.checkpoint_path):
             os.makedirs(self.checkpoint_path)

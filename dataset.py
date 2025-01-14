@@ -12,6 +12,7 @@ class Dataset(data.Dataset):
         super(Dataset, self).__init__()
 
         self.type = type
+        self.seed = seed
         self.data = []
         if scaled:
             if self.type == 'train':
@@ -46,7 +47,7 @@ class Dataset(data.Dataset):
                 print('Invalid input')
                 sys.exit()
         
-        random.seed(seed)
+        random.seed(self.seed)
         random.shuffle(self.data)
 
     def __getitem__(self, index):
