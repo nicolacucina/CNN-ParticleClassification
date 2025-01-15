@@ -14,18 +14,18 @@ def convert_root_to_csv(data_root, energy_flag=False):
         os.makedirs(os.path.join(data_root, 'data'))
         dataset_flag = True
     
-    # Create the dataset_csv file if it does not exist
-    if not os.path.exists(os.path.join(data_root, 'data', 'dataset_csv')):
-        dataset_csv = open(os.path.join(data_root, 'data', 'dataset_csv'), "a")
+    # Create the dataset.csv file if it does not exist
+    if not os.path.exists(os.path.join(data_root, 'data', 'dataset.csv')):
+        dataset_csv = open(os.path.join(data_root, 'data', 'dataset.csv'), "a")
         dataset_flag = True
 
     if energy_flag:
-        if not os.path.exists(os.path.join(data_root, 'data', 'dataset_energy_csv')):
-            dataset_csv = open(os.path.join(data_root, 'data', 'dataset_energy_csv'), "a")
+        if not os.path.exists(os.path.join(data_root, 'data', 'dataset_energy.csv')):
+            dataset_csv = open(os.path.join(data_root, 'data', 'dataset_energy.csv'), "a")
             dataset_flag = True
 
     if dataset_flag:
-        print('Creating dataset_csv')
+        print('Creating dataset.csv')
         index = 0
         for filename in os.listdir('enebins'):
             with open(os.path.join('enebins', filename)) as f:
@@ -116,35 +116,35 @@ def convert_root_to_csv(data_root, energy_flag=False):
                             if not invalid_flag:
                                 index += 1                    
         dataset_csv.close()
-        print('dataset_csv created')
-        print('dataset_csv size: ' + str(index))
+        print('dataset.csv created')
+        print('dataset.csv size: ' + str(index))
 
     else:
-        print('dataset_csv already exists')
+        print('dataset.csv already exists')
 
 def splitTrainTest(data_root, scaled=False, energy_flag=False, size=10626, mod=8):
     if scaled:
         if energy_flag:
-            #dataset_name = 'dataset_energy_scaled_csv'
-            train_name = 'dataset_energy_csv_scaled_train'
-            val_name = 'dataset_energy_csv_scaled_val'
-            test_name = 'dataset_energy_csv_scaled_test'
+            #dataset_name = 'dataset_energy_scaled.csv'
+            train_name = 'dataset_energy_scaled_train.csv'
+            val_name = 'dataset_energy_scaled_val.csv'
+            test_name = 'dataset_energy_scaled_test.csv'
         else: 
-            dataset_name = 'dataset_csv_scaled'
-            train_name = 'dataset_csv_scaled_train'
-            val_name = 'dataset_csv_scaled_val'
-            test_name = 'dataset_csv_scaled_test'
+            dataset_name = 'dataset_scaled.csv'
+            train_name = 'dataset_scaled_train.csv'
+            val_name = 'dataset_scaled_val.csv'
+            test_name = 'dataset_scaled_test.csv'
     else:
         if energy_flag:
-            #dataset_name = 'dataset_energy_csv'
-            train_name = 'dataset_energy_csv_train'
-            val_name = 'dataset_energy_csv_val'
-            test_name = 'dataset_energy_csv_test'
+            #dataset_name = 'dataset_energy.csv'
+            train_name = 'dataset_energy_train.csv'
+            val_name = 'dataset_energy_val.csv'
+            test_name = 'dataset_energy_test.csv'
         else: 
-            dataset_name = 'dataset_csv'
-            train_name = 'dataset_csv_train'
-            val_name = 'dataset_csv_val'
-            test_name = 'dataset_csv_test'
+            dataset_name = 'dataset.csv'
+            train_name = 'dataset_train.csv'
+            val_name = 'dataset_val.csv'
+            test_name = 'dataset_test.csv'
 
     if (os.path.exists(os.path.join(data_root, 'data', train_name))) and (os.path.exists(os.path.join(data_root, 'data', test_name))) and (os.path.exists(os.path.join(data_root, 'data', val_name))):
         print(train_name + ', '+ val_name + ' and '+ test_name +' already exist')
@@ -174,14 +174,14 @@ def splitTrainTest(data_root, scaled=False, energy_flag=False, size=10626, mod=8
 
 def findMaxMin(data_root, energy_flag=False, size=10626):
     if energy_flag:
-        dataset_name = 'dataset_energy_csv_min_max'
+        dataset_name = 'dataset_energy_min_max.txt'
     else: 
-        dataset_name = 'dataset_csv_min_max'
+        dataset_name = 'dataset_min_max.txt'
 
     if(os.path.exists(data_root + '/data/' +  dataset_name) == False):
         print('Max and Min do not exist')
         dataset_min_max = open(os.path.join(data_root, 'data', dataset_name), "a")
-        dataset_csv = open(data_root + '/data/' +  'dataset_csv', "r")
+        dataset_csv = open(data_root + '/data/' +  'dataset.csv', "r")
     
         max_value = -1 # Energy is always positive
         min_value = 1000000 # Big enough number        
@@ -215,14 +215,14 @@ def findMaxMin(data_root, energy_flag=False, size=10626):
 
 def scaleDataset(data_root, scalefactor=1000000, energy_flag=False, size=10626):
     if energy_flag:
-        dataset_name = 'dataset_energy_csv_scaled'
+        dataset_name = 'dataset_energy_scaled.csv'
     else: 
-        dataset_name = 'dataset_csv_scaled'
+        dataset_name = 'dataset_scaled.csv'
 
     if(os.path.exists(data_root + '/data/' +  dataset_name) == False):
         print('Scaled dataset does not exist')
         dataset_csv_scaled = open(os.path.join(data_root, 'data', dataset_name), "a")
-        dataset_csv = open(data_root + '/data/' +  'dataset_csv', "r")
+        dataset_csv = open(data_root + '/data/' +  'dataset.csv', "r")
     
         with dataset_csv as f:
             for i in range(size):
@@ -231,7 +231,12 @@ def scaleDataset(data_root, scalefactor=1000000, energy_flag=False, size=10626):
                 target = line[0]
                 dep = line[1:]
                 dep = np.array(dep, dtype='float64')
-                dep_scaled = dep * scalefactor
+
+                dep_scaled = dep * scalefactor # <-- Scaling function
+                # The scaling can be done in many ways, 
+                # for now i want to keep the range between max and min values the same, 
+                # even if this means having max values in the millions 
+                # while the min values are in the unit range
                 temp = target + ','
                 for i in range(len(dep_scaled)):
                     temp = temp + str(dep_scaled[i]) + ','
@@ -244,19 +249,19 @@ def scaleDataset(data_root, scalefactor=1000000, energy_flag=False, size=10626):
 
 def plotExample(data_root, amount, scaled=False, energy_flag=False, size=10626):
     if amount%2 != 0:
-        print('amount must be even')
+        print('Amount must be even')
         return
     else:
         if scaled:
             if energy_flag:
-                dataset_name = 'dataset_energy_csv_scaled'
+                dataset_name = 'dataset_energy_scaled.csv'
             else: 
-                dataset_name = 'dataset_csv_scaled'
+                dataset_name = 'dataset_scaled.csv'
         else:
             if energy_flag:
-                dataset_name = 'dataset_energy_csv'
+                dataset_name = 'dataset_energy.csv'
             else: 
-                dataset_name = 'dataset_csv'
+                dataset_name = 'dataset.csv'
         
         dataset_csv = open(data_root+'/data/'+dataset_name, "r")
         fig = plt.figure(figsize=(8, 8))
@@ -272,8 +277,8 @@ def plotExample(data_root, amount, scaled=False, energy_flag=False, size=10626):
             dep = line[1:]
             dep = np.array(dep, dtype='float64').reshape(20,20)
             print('Deposit:')
-            print(dep)
-            print('Max value: '+str(np.max(dep)) + ', Min value: '+str(np.min(dep)))
+            print(str(dep)[:100], '...', str(dep)[-100:]) 
+            print('Max value: '+str(np.max(dep)) + ', Min value: '+str(np.min(dep[dep != 0.0])))
             print('Shape of deposit: '+str(dep.shape))
             print('data type: ' + str(dep.dtype))
 

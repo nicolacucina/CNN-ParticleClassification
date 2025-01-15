@@ -21,7 +21,7 @@ The deposit values in each cell are normalized to the total deposit of the event
 
 # Accessing data
 The python library `uproot` can be used to import each `tree` as a `numpy.array` or a `pandas.Dataframe`, as shown in the following snippet: 
-```
+```python
 import uproot as up
 import numpy as np
 
@@ -42,13 +42,13 @@ dep0 = dep[0].reshape(20,20)
 ```
 After converting the data to a numpy array, it is easily accessible and usable. The data used is interpreted as 20x20 image, presented using _matplotlib_:
 
-![image info](./data/Figure_1.png)
+![image info](./img/Figure_1.png)
 
 # Directory Structure
 
 ## utils.py
 
-Containes some preliminary functions:
+Contains some preliminary functions:
 
 - __convert_root_to_csv__(data_root, energy_flag=False) opens the root files inside the directory _data\_root_/_enebins_ and writes the data in a csv file inside _data\_root_/_data_. The _energy\_flag_ is used to choose if the energy deposit has to be included in the csv file. Some checks are performed to ensure that the data is consistent, like only accepting positive energy and 20x20 grids
 
@@ -56,7 +56,7 @@ Containes some preliminary functions:
 
 - __splitTrainTest__(data_root, scaled=False, energy_flag=False, size=10626, mod=8) splits the csv file contained in the directory _data\_root_/_data_ in three different csv files to be used for training, validation and testing. _energy\_flag_ and _scaled_ are used to choose one the different datasets "styles", _size_ and _mod_ are used in the splitting process
 
-- __scaleDataset__(data_root, scalefactor=1000000, energy_flag=False, size=10626) multiplies each deposit by a contant _scalefactor_
+- __scaleDataset__(data_root, scalefactor=1000000, energy_flag=False, size=10626) multiplies each deposit by a contant _scalefactor_. The scaling could be done in many ways, right now the range between max and min values is kept constant, this means having max values in the e06 range while the min values are in the unit range.
 
 - __plotExample__(data_root, amount, scaled=False, energy_flag=False, size=10627) plots an _amount_ of items from the dataset to test if the conversion process was successful
 
@@ -71,6 +71,10 @@ Opens the data and serves it to the DataLoader
 - __\_\_getitem\_\___(self, index) takes the _index_ line inside the dataset and converts it into two torch Tensors, the first contains the label, the second the data
 
 The file also contains a _main()_ function to test all the methods defined.
+
+## testDataset.py
+
+Opens a single item from the dataset to test the model after the training is done. Right now a index is required to select the item to be tested.
 
 ## net.py
 
@@ -102,14 +106,4 @@ Initializes all the parameters needed and starts the training process. To train 
 
 ## loadAndTest.py
 
-Loads the exported model and uses it to make a prediction on the test data that can be either a full dataset (like the ones used in the training) or a single image (loaded via a _dummy dataset_ that contains only the selected image)
-
-# Requirements
-
-hardware
-    # cuda toolkit
-    python3 -m venv <deeplearning>
-    source deeplearning/bin/activate
-    pip3 install numpy
-    pip3 install uproot
-    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+Loads the exported model and uses it to make a prediction on the test data that can be either a full dataset (like the ones used in the training) or a single image.

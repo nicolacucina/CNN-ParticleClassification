@@ -65,6 +65,7 @@ class Net(nn.Module):
             
 
 class Net1(nn.Module):
+    # Other architecture with less layers
     def __init__(self):
         super(Net1, self).__init__()
 
