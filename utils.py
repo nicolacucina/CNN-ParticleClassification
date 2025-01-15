@@ -272,7 +272,7 @@ def plotExample(data_root, amount, scaled=False, energy_flag=False, size=10626):
             dep = line[1:]
             dep = np.array(dep, dtype='float64').reshape(20,20)
             print('Deposit:')
-            #print(dep)
+            print(dep)
             print('Max value: '+str(np.max(dep)) + ', Min value: '+str(np.min(dep)))
             print('Shape of deposit: '+str(dep.shape))
             print('data type: ' + str(dep.dtype))

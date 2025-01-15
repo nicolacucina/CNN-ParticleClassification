@@ -42,9 +42,6 @@ class Net(nn.Module):
         # self.fc = nn.Linear(20 * 20 * 16, 2)
 
     def forward(self, x):
-        # print('Dataset-x: '+str(x))
-        # print('Dataset-x-shape: '+str(x.shape))
-        # print('Dataset-x-type: '+str(type(x)))
         x = x.unsqueeze(1)
         x = x.float()
         # print('Dataset-x-unsqueeze: '+str(x))

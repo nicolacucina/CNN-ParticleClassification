@@ -102,6 +102,14 @@ Initializes all the parameters needed and starts the training process. To train 
 
 ## loadAndTest.py
 
-Loads the exported model and uses it to make a prediction on the test data
+Loads the exported model and uses it to make a prediction on the test data that can be either a full dataset (like the ones used in the training) or a single image (loaded via a _dummy dataset_ that contains only the selected image)
 
 # Requirements
+
+hardware
+    # cuda toolkit
+    python3 -m venv <deeplearning>
+    source deeplearning/bin/activate
+    pip3 install numpy
+    pip3 install uproot
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121

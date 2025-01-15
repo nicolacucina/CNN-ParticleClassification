@@ -42,37 +42,16 @@ class Solver():
             os.makedirs(self.checkpoint_path)
         
     def fit(self):
-
-        # controlla parametri dei layer se cambiano tra epoche
         for epoch in range(self.args.max_epochs):
             self.net.train()
             for step, inputs in enumerate(self.train_loader):
-                # print('Solver-inputs: '+ str(inputs[0]))
-
                 images = inputs[1].to(self.device)
-                # print('Solver-images: '+ str(images))
-                # print('Solver-images-shape: '+str(images.shape)+', ' + str(images.shape[0]))
-                # print('Solver-images-type: '+str(type(images)))
-
                 labels = inputs[0].to(self.device).float()
-                # print('Solver-labels: '+ str(labels))
-                # print('Solver-label-shape: '+str(labels.shape))
-                # print('Solver-label-type: '+str(type(labels)))
-
                 images = images.float()
                 self.optim.zero_grad()
                 pred = self.net(images)
-                # print('Solver-pred: '+ str(pred)) # => tensor([[ 0.0341, -0.1604],, ... , grad_fn=<MaxBackward0>)
-                # print('Solver-pred-shape: '+str(pred.shape))
-                # print('Solver-pred-type: '+str(type(pred)))
-
                 pred_max, _ = torch.max(pred, dim=1) 
-                # print('Solver-pred-max: '+ str(pred_max)) # => tensor([ 0.0341, ... ,grad_fn=<MaxBackward0>)               
-                # print('Solver-pred-max-shape: '+str(pred_max.shape))
-                # print('Solver-pred-max-type: '+str(type(pred_max)))
                 loss = self.loss_fn(pred_max, labels)
-
-                #self.optim.zero_grad()
                 loss.backward()
                 self.optim.step()
                 if (epoch+1) % self.args.print_every == 0:
