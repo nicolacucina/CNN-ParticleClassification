@@ -14,21 +14,21 @@ class TestDataset(data.Dataset):
         self.data = []
         if scaled:
             if self.type == 'train':
-                dataset_name = 'dataset_csv_scaled_train'
+                dataset_name = 'dataset_scaled_train.csv'
             elif self.type == 'val':
-                dataset_name = 'dataset_csv_scaled_val'
+                dataset_name = 'dataset_scaled_val.csv'
             elif self.type == 'test':
-               dataset_name = 'dataset_csv_scaled_test'
+               dataset_name = 'dataset_scaled_test.csv'
             else:
                 print('Invalid input')
                 sys.exit()
         else:
             if self.type == 'train':
-                dataset_name = 'dataset_csv_train'
+                dataset_name = 'dataset_train.csv'
             elif self.type == 'val':
-                dataset_name = 'dataset_csv_val'
+                dataset_name = 'dataset_val.csv'
             elif self.type == 'test':
-               dataset_name = 'dataset_csv_test'
+               dataset_name = 'dataset_test.csv'
             else:
                 print('Invalid input')
                 sys.exit()

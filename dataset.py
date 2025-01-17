@@ -16,15 +16,15 @@ class Dataset(data.Dataset):
         self.data = []
         if scaled:
             if self.type == 'train':
-                with open(os.path.join(data_root, 'data', 'dataset_csv_scaled_train')) as f:
+                with open(os.path.join(data_root, 'data', 'dataset_scaled_train.csv')) as f:
                     for line in f:
                         self.data.append(line)
             elif self.type == 'val':
-                with open(os.path.join(data_root, 'data', 'dataset_csv_scaled_val')) as f:
+                with open(os.path.join(data_root, 'data', 'dataset_scaled_val.csv')) as f:
                     for line in f:
                         self.data.append(line)
             elif self.type == 'test':
-                with open(os.path.join(data_root, 'data', 'dataset_csv_scaled_test')) as f:
+                with open(os.path.join(data_root, 'data', 'dataset_scaled_test.csv')) as f:
                     for line in f:
                         self.data.append(line)
             else:
@@ -32,15 +32,15 @@ class Dataset(data.Dataset):
                 sys.exit()
         else:
             if self.type == 'train':
-                with open(os.path.join(data_root, 'data', 'dataset_csv_train')) as f:
+                with open(os.path.join(data_root, 'data', 'dataset_train.csv')) as f:
                     for line in f:
                         self.data.append(line)
             elif self.type == 'val':
-                with open(os.path.join(data_root, 'data', 'dataset_csv_val')) as f:
+                with open(os.path.join(data_root, 'data', 'dataset_val.csv')) as f:
                     for line in f:
                         self.data.append(line)
             elif self.type == 'test':
-                with open(os.path.join(data_root, 'data', 'dataset_csv_test')) as f:
+                with open(os.path.join(data_root, 'data', 'dataset_test.csv')) as f:
                     for line in f:
                         self.data.append(line)
             else:
@@ -60,51 +60,10 @@ class Dataset(data.Dataset):
 
     def __len__(self):
         return len(self.data)
-
-# class SingleDataset(data.Dataset):
-#     def __init__(self, index, data_root=os.getcwd(), scaled=True, type='test'):
-#         super(SingleDataset, self).__init__()
-
-#         self.type = type
-#         self.data = []
-#         if scaled:
-#             if self.type == 'train':
-#                 dataset_name = 'dataset_csv_scaled_train'
-#             elif self.type == 'val':
-#                 dataset_name = 'dataset_csv_scaled_val'
-#             elif self.type == 'test':
-#                 dataset_name = 'dataset_csv_scaled_test'
-#             else:
-#                 print('Invalid input')
-#                 sys.exit()
-#         else:
-#             if self.type == 'train':
-#                 dataset_name = 'dataset_csv_train'
-#             elif self.type == 'val':
-#                 dataset_name = 'dataset_csv_val'
-#             elif self.type == 'test':
-#                 dataset_name = 'dataset_csv_test'
-#             else:
-#                 print('Invalid input')
-#                 sys.exit()
-        
-#         line = linecache.getline(os.path.join(data_root, 'data', dataset_name), index)
-#         self.data.append(line)
-
-#     def __getitem__(self, index):
-#         line = self.data[0]
-#         line = line.split(',')
-#         label = torch.tensor(int(line[0]))
-#         dep = np.array(line[1:], dtype='float64').reshape(20,20)
-#         input_tensor =  torch.from_numpy(dep)
-#         return label, input_tensor
-
-#     def __len__(self):
-#         return len(self.data)
-        
+       
 if __name__=='__main__':
     splitTrainTest(os.getcwd())
-    temp = sys.argv[1]
+    temp = sys.argv[1] # train, val, test
     if temp == 'train':
         print('Training set selected')
     elif temp == 'val':

@@ -1,6 +1,7 @@
 import os
 import uproot as up
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import linecache
 from math import floor, ceil
@@ -123,6 +124,7 @@ def convert_root_to_csv(data_root, energy_flag=False):
         print('dataset.csv already exists')
 
 def splitTrainTest(data_root, scaled=False, energy_flag=False, size=10626, mod=8):
+    # splittare meglio -> ogni tanto ottengo f1 score nullo
     if scaled:
         if energy_flag:
             #dataset_name = 'dataset_energy_scaled.csv'
@@ -171,6 +173,19 @@ def splitTrainTest(data_root, scaled=False, energy_flag=False, size=10626, mod=8
         dataset_csv_val.close()
         dataset_csv_test.close()
         dataset_csv.close()
+
+def countClasses(dataset_path, scaled=True, energy_flag=False, size=10626):
+    dataset_csv = open(dataset_path, "r")
+    count_electron = 0
+    count_proton = 0
+    for i in range(size):
+        line = linecache.getline(dataset_path, i)
+        line = line.split(',')
+        if line[0] == '0':
+            count_electron += 1
+        else:
+            count_proton += 1
+    print('Electrons: ' + str(count_electron) + ', Protons: ' + str(count_proton))
 
 def findMaxMin(data_root, energy_flag=False, size=10626):
     if energy_flag:
@@ -237,6 +252,7 @@ def scaleDataset(data_root, scalefactor=1000000, energy_flag=False, size=10626):
                 # for now i want to keep the range between max and min values the same, 
                 # even if this means having max values in the millions 
                 # while the min values are in the unit range
+                # normalizzare meglio?
                 temp = target + ','
                 for i in range(len(dep_scaled)):
                     temp = temp + str(dep_scaled[i]) + ','
@@ -292,9 +308,45 @@ def plotExample(data_root, amount, scaled=False, energy_flag=False, size=10626):
         plt.subplots_adjust(hspace=0.5)
         plt.show()
 
+def plotHistogram(data_root, scaled=False, energy_flag=False, size=10626):
+    if scaled:
+        if energy_flag:
+            dataset_name = 'dataset_energy_scaled.csv'
+        else: 
+            dataset_name = 'dataset_scaled.csv'
+    else:
+        if energy_flag:
+            dataset_name = 'dataset_energy.csv'
+        else: 
+            dataset_name = 'dataset.csv'
+    
+    data = pd.read_csv(os.path.join(data_root, 'data', dataset_name), header=None)
+    labels = data.iloc[:, 0]
+    labels.info()
+    non_zero = data.iloc[:, 1:].values.flatten()
+    non_zero = non_zero[non_zero != 0.0] 
+    
+    # fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+    plt.hist(non_zero, bins=1000, color='blue')
+    plt.title('Deposit energy distribution')
+    plt.xlabel('Deposit energy')
+    plt.ylabel('Count')
+
+    # ax[1].bar([0, 1], [len(labels[labels == 0]), len(labels[labels == 1])], color='blue')
+    # ax[1].set_title('Labels distribution')
+    # ax[1].set_xlabel('Labels')
+    # ax[1].set_ylabel('Count')
+
+    plt.show()
+
 if __name__ == "__main__":
     convert_root_to_csv(os.getcwd())
     findMaxMin(os.getcwd())
     splitTrainTest(os.getcwd(), scaled=True)
+    countClasses(os.path.join(os.getcwd(), 'data', 'dataset.csv')) # 10626 -> Electrons: 5572, Protons: 5054
+    countClasses(os.path.join(os.getcwd(), 'data', 'dataset_train.csv'), size=8264) #8264 -> Electrons: 4335, Protons: 3929
+    countClasses(os.path.join(os.getcwd(), 'data', 'dataset_val.csv'), size=1033) #1033 -> Electrons: 541, Protons: 492
+    countClasses(os.path.join(os.getcwd(), 'data', 'dataset_test.csv'), size=1328) #1328 -> Electrons: 696, Protons: 632
     scaleDataset(os.getcwd())
+    plotHistogram(os.getcwd())
     plotExample(os.getcwd(), amount=6)
