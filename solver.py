@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
-from net import Net, Net1
+from net import Net, NetMini, OtherNet, OtherNetMini
 from dataset import Dataset
 
 class Solver():
@@ -40,14 +40,22 @@ class Solver():
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-        if self.args.type == 'one_class':
-            print('Net1 choosen')
-            self.net = Net1().to(self.device)
-            self.loss_fn = torch.nn.BCEWithLogitsLoss() # combines a Sigmoid layer and the BCELoss in one single class
-        elif self.args.type == 'two_classes':
+        if self.args.type == 'two_classes':
             print('Net choosen')
             self.net = Net().to(self.device)
             self.loss_fn = torch.nn.CrossEntropyLoss()
+        elif self.args.type == 'two_classes_mini':
+            print('NetMini choosen')
+            self.net = Net().to(self.device)
+            self.loss_fn = torch.nn.CrossEntropyLoss()
+        elif self.args.type == 'one_class':
+            print('OtherNet choosen')
+            self.net = OtherNet().to(self.device)
+            self.loss_fn = torch.nn.BCEWithLogitsLoss() # combines a Sigmoid layer and the BCELoss in one single class
+        elif self.args.type == 'one_class_mini':
+            print('OtherNetMini choosen')
+            self.net = OtherNetMini().to(self.device)
+            self.loss_fn = torch.nn.BCEWithLogitsLoss() # combines a Sigmoid layer and the BCELoss in one single class
         else:
             exit()
         # https://stackoverflow.com/questions/53628622/loss-function-its-inputs-for-binary-classification-pytorch
@@ -66,15 +74,15 @@ class Solver():
         for epoch in range(self.args.max_epochs):
             self.net.train()
             for step, inputs in enumerate(self.train_loader):
-                # images = inputs[1].to(self.device)
-                # labels = inputs[0].to(self.device).float().view(-1, 1)
-                # images = images.float()
-                if self.args.type == 'one_class':   
+                if self.args.type == 'one_class' or self.args.type == 'one_class_mini':   
                     images = inputs[1].to(self.device)
                     labels = inputs[0].to(self.device).float().view(-1, 1)
                     images = images.float()
-                elif self.args.type == 'two_classes':
-                    continue
+                elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
+                    images = inputs[1].to(self.device)
+                    labels = inputs[0].to(self.device)
+                    images = images.float()
+                    
                 self.optim.zero_grad()
                 pred = self.net(images)
                 # pred_max, _ = torch.max(pred, dim=1) # mi sa che questo va tolto perchè non lo fa mai il professore
@@ -118,46 +126,27 @@ class Solver():
         
         with torch.no_grad():
             for inputs in loader:
-                # images = inputs[1].to(self.device).float()
-                # labels = inputs[0].to(self.device).float()
-                if self.args.type == 'one_class':
+                if self.args.type == 'one_class' or self.args.type == 'one_class_mini':
                     images = inputs[1].to(self.device).float()
                     labels = inputs[0].to(self.device).float().view(-1, 1)
-
+                elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
+                    images = inputs[1].to(self.device)
+                    labels = inputs[0].to(self.device).float()
+                    images = images.float()
+                
                 outputs = self.net(images)
 
-                # Debugging prints
-                # print('Solver-outputs: '+ str(outputs.detach())) 
-                # tensor([[15.4229,  3.7505], ... ,[15.4344,  3.7505]])
-                
-                # print('Solver-outputs-shape: '+str(outputs.shape))
-                # torch.Size([64, 2])
-
-                # detach() returns a new Tensor, detached from the current graph.
-
-                # torch.max returns [value, index] along axis 1, where index represents the predicted class 
-                if self.args.type == 'one_class':
+                if self.args.type == 'one_class' or self.args.type == 'one_class_mini':
                     probabilities = torch.sigmoid(outputs)
                     preds = (probabilities > 0.5).float()
-
-                # Debugging prints
-                # print('Solver-preds: '+ str(preds))
-                # tensor([0, 0, 0, ... , 0]) 
+                elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
+                    # torch.max returns [value, index] along axis 1, where index represents the predicted class     
+                    values, preds = torch.max(outputs.detach(), dim=1)
                 
-                # print('Solver-preds-shape: '+str(preds.shape))
-                # torch.Size([64])
-                
-                # print('Solver-preds-values: '+ str(values))
-                # tensor([15.4229, 15.4268, 15.5110, ... , 15.4344])
-                
-                # print('Solver-preds-values-shape: '+str(values.shape))
-                # torch.Size([64])
-
                 # Sum up all the correct predictions
                 num_correct += (preds == labels).sum().item()
                 num_total += labels.size(0)
                 
-                        
                 # Compute f1_score
                 TP += ((preds == 1) & (labels == 1)).sum().item()
                 FP += ((preds == 1) & (labels == 0)).sum().item()
@@ -230,16 +219,22 @@ class Solver():
         num_correct, num_total, TP, FP, FN = 0, 0, 0, 0, 0
         with torch.no_grad():
             for inputs in test_loader:
-                if self.args.type == 'one_class':
+                if self.args.type == 'one_class' or self.args.type == 'one_class_mini':
                     images = inputs[1].to(self.device).float()
                     labels = inputs[0].to(self.device).float().view(-1, 1)
-
-                outputs = self.net(images)
+                elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
+                    images = inputs[1].to(self.device)
+                    labels = inputs[0].to(self.device).float()
+                    images = images.float()
                 
-                if self.args.type == 'one_class':
+                outputs = self.net(images)
+
+                if self.args.type == 'one_class' or self.args.type == 'one_class_mini':
                     probabilities = torch.sigmoid(outputs)
                     preds = (probabilities > 0.5).float()
-
+                elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
+                    values, preds = torch.max(outputs.detach(), dim=1)
+                
                 num_correct += (preds == labels).sum().item()
                 num_total += labels.size(0)
 

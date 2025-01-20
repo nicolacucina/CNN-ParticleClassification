@@ -20,7 +20,12 @@ if __name__ == '__main__':
     parser.add_argument('--decay', type=float, default=1e-3)
     parser.add_argument('--gamma', type=float, default=0.5)
     parser.add_argument('--type', type=str, default='one_class') # one_class, two_classes
-    # parser.add_argument('--type', type=str, default='two_classes') # one_class, two_classes
+    
+    # one_class, one_class_mini, two_classes, two_classes_mini
+    # parser.add_argument('--type', type=str, default='one_class') 
+    parser.add_argument('--type', type=str, default='one_class_mini')
+    # parser.add_argument('--type', type=str, default='two_classes') 
+    # parser.add_argument('--type', type=str, default='two_classes_mini') 
     args = parser.parse_args()
     
     solver = Solver(args)

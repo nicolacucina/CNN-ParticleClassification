@@ -5,20 +5,17 @@ import time
 import sys
 import linecache
 from torch.utils.data import DataLoader
-from net import Net, Net1
+from net import Net, NetMini, OtherNet, OtherNetMini
 from dataset import Dataset
 from testDataset import TestDataset
 import matplotlib.pyplot as plt
 
-"""
-python loadAndTest.py 1_output.pth one_class full test
-python loadAndTest.py 1_output.pth one_class single test 11
-"""
 
 if __name__ == "__main__":
-    model = sys.argv[1] # model30.pth
-    temp = sys.argv[2] # full, single
-    type = sys.argv[3] # train, val, test
+    model = sys.argv[1] # <model_name>.pth
+    model_type = sys.argv[2] # one_class, two_classes
+    temp = sys.argv[3] # full, single
+    data_type = sys.argv[4] # train, val, test
 
     # Show hyperparameters of selected model
     with open(os.path.join(os.getcwd(), 'training_data', model[:-4] + "_hyper_params.csv"), "r", newline="") as f:
@@ -28,9 +25,19 @@ if __name__ == "__main__":
         # Read hyperparameters
         f.readline()
     
-    start_time = time.time()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    net = Net().to(device)
+
+    start_time = time.time()
+    
+    if model_type == 'one_class':
+        net = OtherNet().to(device)
+    elif model_type == 'one_class_mini':
+        net = OtherNetMini().to(device)
+    elif model_type == 'two_classes':
+        net = Net().to(device)
+    elif model_type == 'two_classes_mini':
+        net = NetMini().to(device)
+    
     net.load_state_dict(torch.load(os.path.join(os.getcwd(), 'model', model), map_location=device))
     net.eval()
     print('Time to load model: ' + str(time.time() - start_time) + ' seconds')
@@ -38,7 +45,6 @@ if __name__ == "__main__":
     # Print network architecture
 
     print(net)
-    
     
     start_time = time.time()
     
@@ -50,15 +56,22 @@ if __name__ == "__main__":
         num_correct, num_total, TP, FP, FN = 0, 0, 0, 0, 0
         with torch.no_grad():
             for inputs in test_loader:
-                if model_type == 'one_class':
+                if model_type == 'one_class' or model_type == 'one_class_mini':
                     images = inputs[1].to(device).float()
                     labels = inputs[0].to(device).float().view(-1, 1)
+                elif model_type == 'two_classes' or model_type == 'two_classes_mini':
+                    images = inputs[1].to(device)
+                    labels = inputs[0].to(device).float()
+                    images = images.float()
 
                 outputs = net(images)
-                if model_type == 'one_class':
+                
+                if model_type == 'one_class' or model_type == 'one_class_mini':
                     probabilities = torch.sigmoid(outputs)
                     preds = (probabilities > 0.5).float()
-
+                elif model_type == 'two_classes' or model_type == 'two_classes_mini':
+                    values, preds = torch.max(outputs.detach(), dim=1)
+                
                 num_correct += (preds == labels).sum().item()
                 num_total += labels.size(0)
                 TP += ((preds == 1) & (labels == 1)).sum().item()
@@ -89,14 +102,22 @@ if __name__ == "__main__":
     
         with torch.no_grad():
             for inputs in loader:
-                # print(inputs)
-                if model_type == 'one_class':
+                if model_type == 'one_class' or model_type == 'one_class_mini':
                     images = inputs[1].to(device).float()
                     labels = inputs[0].to(device).float().view(-1, 1)
+                elif model_type == 'two_classes' or model_type == 'two_classes_mini':
+                    images = inputs[1].to(device)
+                    labels = inputs[0].to(device).float()
+                    images = images.float()
+
                 outputs = net(images)
-                if model_type == 'one_class':
+                
+                if model_type == 'one_class' or model_type == 'one_class_mini':
                     probabilities = torch.sigmoid(outputs)
                     preds = (probabilities > 0.5).float()
+                elif model_type == 'two_classes' or model_type == 'two_classes_mini':
+                    values, preds = torch.max(outputs.detach(), dim=1)
+                
                 print('Ground truth: ' + str(labels.item()) + ', Predicted label: '+ str(preds.item()))
                 print('Prediction matches Ground truth: ' + str(preds.item() == labels.item()))
 
