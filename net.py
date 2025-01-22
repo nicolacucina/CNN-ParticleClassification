@@ -54,7 +54,7 @@ class Net(nn.Module):
 
 class NetMini(nn.Module):
     def __init__(self):
-        super(NetMiniMini, self).__init__()
+        super(NetMini, self).__init__()
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=64, kernel_size=(3, 3), padding=(1, 1), stride=(1, 1)),
             nn.BatchNorm2d(64),
