@@ -85,12 +85,6 @@ class Solver():
                     
                 self.optim.zero_grad()
                 pred = self.net(images)
-                # pred_max, _ = torch.max(pred, dim=1) # mi sa che questo va tolto perchè non lo fa mai il professore
-                # intanto capire se prendo il valore oppure l'indice 
-                # ma devo lasciare due neuroni e togliere max? oppure lo lascio?
-                # in teoria funziona in entrambi i modi
-                # https://stackoverflow.com/questions/66906884/how-is-pytorchs-class-bcewithlogitsloss-exactly-implemented
-                # loss = self.loss_fn(pred_max, labels)
                 
                 loss = self.loss_fn(pred, labels)
                 loss.backward()
@@ -141,7 +135,9 @@ class Solver():
                     preds = (probabilities > 0.5).float()
                 elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
                     # torch.max returns [value, index] along axis 1, where index represents the predicted class     
-                    values, preds = torch.max(outputs.detach(), dim=1)
+                    # values, preds = torch.max(outputs.detach(), dim=1)
+                    probabilities = torch.softmax(outputs, dim=1)
+                    preds = torch.argmax(probabilities, dim=1)
                 
                 # Sum up all the correct predictions
                 num_correct += (preds == labels).sum().item()
@@ -233,7 +229,9 @@ class Solver():
                     probabilities = torch.sigmoid(outputs)
                     preds = (probabilities > 0.5).float()
                 elif self.args.type == 'two_classes' or self.args.type == 'two_classes_mini':
-                    values, preds = torch.max(outputs.detach(), dim=1)
+                    # values, preds = torch.max(outputs.detach(), dim=1)
+                    probabilities = torch.softmax(outputs, dim=1)
+                    preds = torch.argmax(probabilities, dim=1)
                 
                 num_correct += (preds == labels).sum().item()
                 num_total += labels.size(0)
